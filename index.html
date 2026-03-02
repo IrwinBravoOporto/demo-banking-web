@@ -79,9 +79,7 @@ html, body {
   color: #111827;
 }
 
-/* ========================= */
-/* ====== OVERLAY BANK ===== */
-/* ========================= */
+/* Overlay */
 
 #overlay {
   position: fixed;
@@ -204,7 +202,7 @@ function updateAmountUI() {
 /* ============================= */
 
 function postToNative(payload) {
-  if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.bridge) {
+  if (window.webkit?.messageHandlers?.bridge) {
     window.webkit.messageHandlers.bridge.postMessage(
       JSON.stringify(payload)
     );
@@ -243,9 +241,12 @@ function testAndroid() {
 /* ====== RESPUESTA iOS ======== */
 /* ============================= */
 
-function biometricResult(result) {
+function biometricResult(success) {
 
-  if (result === "Autenticado") {
+  // Maneja boolean o string por seguridad
+  const isSuccess = (success === true || success === "true");
+
+  if (isSuccess) {
     showModal(
       "success",
       "Pago exitoso",
@@ -278,11 +279,15 @@ function showModal(type, title, message, shouldNotifyNative) {
       </div>
       <h2>${title}</h2>
       <p>${message}</p>
-      <button onclick="closeModal('${type}', ${shouldNotifyNative})">Aceptar</button>
+      <button id="confirmBtn">Aceptar</button>
     </div>
   `;
 
   document.body.appendChild(overlay);
+
+  document.getElementById("confirmBtn").onclick = function() {
+    closeModal(type, shouldNotifyNative);
+  };
 }
 
 function closeModal(type, shouldNotifyNative) {
@@ -293,7 +298,7 @@ function closeModal(type, shouldNotifyNative) {
   if (shouldNotifyNative) {
     postToNative({
       event: "paymentCompleted",
-      status: type === "success" ? "success" : "error",
+      status: type,
       amount: parseFloat(currentAmount)
     });
   }
