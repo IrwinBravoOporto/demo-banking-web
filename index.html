@@ -6,71 +6,56 @@
 <title>Pago Servicio</title>
 
 <style>
-html, body {
+
+/* -------- OVERLAY -------- */
+
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f4f6f9;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
 }
 
-/* Espacio blanco superior */
-.top-space {
-  height: 100px;
-  background: white;
-}
+/* -------- MODAL -------- */
 
-/* Navbar */
-.navbar {
-  background: white;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.back-button {
-  font-size: 16px;
-  cursor: pointer;
-  color: #1a73e8;
-  font-weight: 600;
-}
-
-/* Card */
-.card {
+.modal {
   background: white;
   padding: 28px;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-  max-width: 420px;
-  margin: 30px auto;
+  width: 85%;
+  max-width: 340px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-.title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 20px;
+.modal h2 {
+  margin-bottom: 12px;
+  font-size: 20px;
 }
 
-.amount {
-  font-size: 36px;
-  font-weight: 800;
-  color: #1a73e8;
-  margin-bottom: 30px;
+.modal p {
+  margin-bottom: 24px;
+  font-size: 16px;
+  color: #555;
 }
 
-.button {
+.modal button {
   width: 100%;
-  padding: 16px;
+  padding: 14px;
   border-radius: 12px;
   border: none;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  cursor: pointer;
-}
-
-.primary {
   background: #1a73e8;
   color: white;
 }
+
 </style>
 </head>
 
@@ -95,49 +80,73 @@ html, body {
 
 let currentAmount = 120.50;
 
-function goBack() {
+/* --------- ENVÍO AL NATIVO --------- */
+
+function postToNative(payload) {
   window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify({
-      event: "goBack"
-    })
+    JSON.stringify(payload)
   );
 }
 
-function confirmPayment() {
-  window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify({
-      event: "requestBiometric",
-      amount: currentAmount
-    })
-  );
+/* --------- BOTONES --------- */
+
+function goBack() {
+  postToNative({ event: "goBack" });
 }
+
+function confirmPayment() {
+  postToNative({
+    event: "requestBiometric",
+    amount: currentAmount
+  });
+}
+
+/* --------- RESPUESTA BIOMÉTRICA DESDE iOS --------- */
 
 function biometricResult(result) {
 
   if (result === "Autenticado") {
-
-    alert("Pago exitoso ✅");
-
-    window.webkit.messageHandlers.bridge.postMessage(
-      JSON.stringify({
-        event: "paymentCompleted",
-        status: "success",
-        amount: currentAmount
-      })
+    showModal(
+      "Pago exitoso",
+      "Tu pago fue procesado correctamente.",
+      "success"
     );
-
   } else {
-
-    alert("Autenticación fallida ❌");
-
-    window.webkit.messageHandlers.bridge.postMessage(
-      JSON.stringify({
-        event: "paymentCompleted",
-        status: "error",
-        amount: currentAmount
-      })
+    showModal(
+      "Autenticación fallida",
+      "No se pudo validar tu identidad.",
+      "error"
     );
   }
+}
+
+/* --------- MODAL UI --------- */
+
+function showModal(title, message, status) {
+
+  const overlay = document.createElement("div");
+  overlay.id = "overlay";
+
+  overlay.innerHTML = `
+    <div class="modal">
+      <h2>${title}</h2>
+      <p>${message}</p>
+      <button onclick="confirmModal('${status}')">Aceptar</button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+}
+
+function confirmModal(status) {
+
+  document.getElementById("overlay").remove();
+
+  postToNative({
+    event: "paymentCompleted",
+    status: status,
+    amount: currentAmount
+  });
 }
 
 </script>
