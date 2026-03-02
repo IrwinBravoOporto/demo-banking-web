@@ -14,13 +14,13 @@ html, body {
   background: #f4f6f9;
 }
 
-/* ESPACIO BLANCO SUPERIOR */
+/* Espacio blanco superior */
 .top-space {
   height: 100px;
   background: white;
 }
 
-/* NAVBAR WEB */
+/* Navbar */
 .navbar {
   background: white;
   padding: 16px;
@@ -34,7 +34,7 @@ html, body {
   font-weight: 600;
 }
 
-/* CARD */
+/* Card */
 .card {
   background: white;
   padding: 28px;
@@ -93,14 +93,12 @@ html, body {
 
 <script>
 
-/* Navegación */
 function goBack() {
   window.webkit.messageHandlers.bridge.postMessage({
     event: "goBack"
   });
 }
 
-/* Solicitar biometría con monto dinámico */
 function confirmPayment() {
   window.webkit.messageHandlers.bridge.postMessage({
     event: "requestBiometric",
