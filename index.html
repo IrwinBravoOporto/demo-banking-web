@@ -171,7 +171,7 @@ html, body {
 
 <div class="card">
   <div class="title">Pago de Servicio</div>
-  <div class="amount">S/ 120.50</div>
+  <div class="amount" id="amountLabel">S/ 0.00</div>
 
   <button class="button primary" onclick="confirmPayment()">
     Confirmar con Face ID
@@ -180,12 +180,28 @@ html, body {
   <button class="button secondary" onclick="testAndroid()">
     Test Android
   </button>
-
 </div>
 
 <script>
 
-let currentAmount = 120.50;
+/* ============================= */
+/* ====== MONTO DINÁMICO ======= */
+/* ============================= */
+
+function generateAmount() {
+  return (Math.random() * 200 + 20).toFixed(2);
+}
+
+let currentAmount = generateAmount();
+updateAmountUI();
+
+function updateAmountUI() {
+  document.getElementById("amountLabel").innerText = "S/ " + currentAmount;
+}
+
+/* ============================= */
+/* ====== BRIDGE NATIVO ======== */
+/* ============================= */
 
 function postToNative(payload) {
   if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.bridge) {
@@ -200,23 +216,32 @@ function goBack() {
 }
 
 function confirmPayment() {
+
+  currentAmount = generateAmount();
+  updateAmountUI();
+
   postToNative({
     event: "requestBiometric",
-    amount: currentAmount
+    amount: parseFloat(currentAmount)
   });
 }
 
-/* ---- BOTÓN SOLO VISUAL ANDROID ---- */
+/* ============================= */
+/* ====== TEST ANDROID ========= */
+/* ============================= */
 
 function testAndroid() {
   showModal(
     "success",
     "Test Android",
-    "Este modal es solo visual. No ejecuta ninguna acción nativa."
+    "Este modal es solo visual. No ejecuta ninguna acción nativa.",
+    false
   );
 }
 
-/* ---- RESPUESTA iOS ---- */
+/* ============================= */
+/* ====== RESPUESTA iOS ======== */
+/* ============================= */
 
 function biometricResult(result) {
 
@@ -224,20 +249,24 @@ function biometricResult(result) {
     showModal(
       "success",
       "Pago exitoso",
-      "Tu pago fue procesado correctamente."
+      "Tu pago fue procesado correctamente.",
+      true
     );
   } else {
     showModal(
       "error",
       "Autenticación fallida",
-      "No se pudo validar tu identidad."
+      "No se pudo validar tu identidad.",
+      true
     );
   }
 }
 
-/* ---- MODAL ---- */
+/* ============================= */
+/* ====== MODAL GLOBAL ========= */
+/* ============================= */
 
-function showModal(type, title, message) {
+function showModal(type, title, message, shouldNotifyNative) {
 
   const overlay = document.createElement("div");
   overlay.id = "overlay";
@@ -249,16 +278,25 @@ function showModal(type, title, message) {
       </div>
       <h2>${title}</h2>
       <p>${message}</p>
-      <button onclick="closeModal()">Aceptar</button>
+      <button onclick="closeModal('${type}', ${shouldNotifyNative})">Aceptar</button>
     </div>
   `;
 
   document.body.appendChild(overlay);
 }
 
-function closeModal() {
+function closeModal(type, shouldNotifyNative) {
+
   const overlay = document.getElementById("overlay");
   if (overlay) overlay.remove();
+
+  if (shouldNotifyNative) {
+    postToNative({
+      event: "paymentCompleted",
+      status: type === "success" ? "success" : "error",
+      amount: parseFloat(currentAmount)
+    });
+  }
 }
 
 </script>
