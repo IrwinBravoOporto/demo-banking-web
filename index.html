@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bank Demo</title>
+</head>
+<body>
+  <h1>Demo Pago Bancario</h1>
+  <button onclick="requestBiometric()">Confirmar con Biometría</button>
+  <p id="result"></p>
+
+<script>
+function requestBiometric() {
+  window.webkit.messageHandlers.bridge.postMessage(
+    JSON.stringify({
+      event: "requestBiometric"
+    })
+  );
+}
+
+function biometricResult(result) {
+  document.getElementById("result").innerText = result;
+}
+</script>
+</body>
+</html>
