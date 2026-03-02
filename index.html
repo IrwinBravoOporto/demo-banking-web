@@ -14,15 +14,16 @@ html, body {
   background: #f4f6f9;
 }
 
+/* ESPACIO BLANCO SUPERIOR */
+.top-space {
+  height: 100px;
+  background: white;
+}
+
 /* NAVBAR WEB */
 .navbar {
   background: white;
-  padding-top: calc(env(safe-area-inset-top) + 16px);
-  padding-left: 16px;
-  padding-right: 16px;
-  padding-bottom: 16px;
-  display: flex;
-  align-items: center;
+  padding: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
@@ -70,56 +71,12 @@ html, body {
   background: #1a73e8;
   color: white;
 }
-
-/* LISTADO */
-.list-container {
-  max-width: 420px;
-  margin: 20px auto;
-}
-
-.list-item {
-  background: white;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.06);
-}
-
-/* OVERLAY */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.65);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.hidden {
-  display: none;
-}
-
-.modal {
-  background: white;
-  padding: 28px;
-  border-radius: 20px;
-  width: 85%;
-  max-width: 400px;
-  text-align: center;
-}
-
-.icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-}
 </style>
 </head>
 
 <body>
+
+<div class="top-space"></div>
 
 <div class="navbar">
   <div class="back-button" onclick="goBack()">← Volver</div>
@@ -134,97 +91,22 @@ html, body {
   </button>
 </div>
 
-<!-- LISTADO QUE VIENE DESDE iOS -->
-<div id="list-container" class="list-container"></div>
-
-<!-- MODAL -->
-<div id="overlay" class="overlay hidden">
-  <div class="modal">
-    <div id="modal-icon" class="icon"></div>
-    <h2 id="modal-title"></h2>
-    <p id="modal-message"></p>
-    <button class="button primary" onclick="closeModal()">
-      Aceptar
-    </button>
-  </div>
-</div>
-
 <script>
 
-/* ---------- NAVIGATION ---------- */
-
+/* Navegación */
 function goBack() {
   window.webkit.messageHandlers.bridge.postMessage({
     event: "goBack"
   });
 }
 
-/* ---------- BIOMETRÍA ---------- */
-
+/* Solicitar biometría con monto dinámico */
 function confirmPayment() {
   window.webkit.messageHandlers.bridge.postMessage({
-    event: "requestBiometric"
+    event: "requestBiometric",
+    amount: 120.50
   });
 }
-
-function biometricResult(result) {
-  if (result === "Autenticado") {
-    showSuccess();
-  } else {
-    showError();
-  }
-}
-
-/* ---------- MODALES ---------- */
-
-function showSuccess() {
-  document.getElementById("overlay").classList.remove("hidden");
-  document.getElementById("modal-icon").innerHTML = "✔️";
-  document.getElementById("modal-title").innerText = "Pago Exitoso";
-  document.getElementById("modal-message").innerText =
-    "La validación fue exitosa.";
-}
-
-function showError() {
-  document.getElementById("overlay").classList.remove("hidden");
-  document.getElementById("modal-icon").innerHTML = "❌";
-  document.getElementById("modal-title").innerText = "Pago Rechazado";
-  document.getElementById("modal-message").innerText =
-    "La validación falló.";
-}
-
-function closeModal() {
-  window.webkit.messageHandlers.bridge.postMessage({
-    event: "closeScreen"
-  });
-}
-
-/* ---------- LISTADO ---------- */
-
-function requestList() {
-  window.webkit.messageHandlers.bridge.postMessage({
-    event: "loadList"
-  });
-}
-
-function renderList(data) {
-  const container = document.getElementById("list-container");
-  container.innerHTML = "";
-
-  data.forEach(item => {
-    container.innerHTML += `
-      <div class="list-item">
-        <strong>${item.name}</strong><br/>
-        S/ ${item.amount}
-      </div>
-    `;
-  });
-}
-
-/* Solicitar listado cuando carga */
-window.onload = function() {
-  requestList();
-};
 
 </script>
 
