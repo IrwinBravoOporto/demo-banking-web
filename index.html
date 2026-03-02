@@ -241,10 +241,11 @@ function testAndroid() {
 /* ====== RESPUESTA iOS ======== */
 /* ============================= */
 
-function biometricResult(success) {
+function biometricResult(result) {
 
-  // Maneja boolean o string por seguridad
-  const isSuccess = (success === true || success === "true");
+  console.log("Resultado recibido desde iOS:", result);
+
+  const isSuccess = result === "Autenticado";
 
   if (isSuccess) {
     showModal(
