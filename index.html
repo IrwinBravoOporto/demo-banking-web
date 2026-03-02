@@ -2,40 +2,52 @@
 <html>
 <head>
 <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pago Servicio</title>
+
 <style>
 body {
-  font-family: -apple-system, BlinkMacSystemFont;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f4f6f9;
   padding: 20px;
+  margin: 0;
 }
 
 .card {
   background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  padding: 28px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  max-width: 420px;
+  margin: 40px auto;
 }
 
 .title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 15px;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.label {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #555;
 }
 
 .amount {
-  font-size: 28px;
-  font-weight: bold;
+  font-size: 36px;
+  font-weight: 800;
   color: #1a73e8;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .button {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 16px;
+  border-radius: 12px;
   border: none;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -44,16 +56,28 @@ body {
   color: white;
 }
 
+.status {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+}
+
 .success {
-  color: green;
-  font-weight: bold;
-  margin-top: 20px;
+  color: #0a8f3e;
 }
 
 .error {
-  color: red;
-  font-weight: bold;
-  margin-top: 20px;
+  color: #d93025;
+}
+
+.processing {
+  color: #f9a825;
+}
+
+.check {
+  font-size: 48px;
+  margin-bottom: 10px;
 }
 </style>
 </head>
@@ -62,14 +86,17 @@ body {
 
 <div class="card">
   <div class="title">Pago de Servicio</div>
-  <div>Empresa: Luz del Sur</div>
+
+  <div class="label">Empresa</div>
+  <div style="font-size:18px; margin-bottom:20px;">Luz del Sur</div>
+
   <div class="amount">S/ 120.50</div>
 
   <button class="button primary" onclick="confirmPayment()">
     Confirmar con Face ID
   </button>
 
-  <div id="status"></div>
+  <div id="status" class="status"></div>
 </div>
 
 <script>
@@ -88,16 +115,31 @@ function biometricResult(result) {
 
   if (result === "Autenticado") {
 
-    status.innerHTML = "<div class='success'>Pago Exitoso</div>";
+    // Paso 1: Mostrar procesamiento
+    status.innerHTML = "<div class='processing'>Procesando pago...</div>";
 
-    // Notificamos a Mobile
-    window.webkit.messageHandlers.bridge.postMessage(
-      JSON.stringify({
-        event: "paymentCompleted",
-        status: "success",
-        amount: 120.50
-      })
-    );
+    // Paso 2: Simular backend (1.5s)
+    setTimeout(() => {
+
+      status.innerHTML = `
+        <div class='success'>
+          <div class='check'>✔️</div>
+          Pago Exitoso
+        </div>
+      `;
+
+      // Paso 3: Notificar a Mobile después de mostrar éxito
+      setTimeout(() => {
+        window.webkit.messageHandlers.bridge.postMessage(
+          JSON.stringify({
+            event: "paymentCompleted",
+            status: "success",
+            amount: 120.50
+          })
+        );
+      }, 800);
+
+    }, 1500);
 
   } else {
 
