@@ -18,7 +18,7 @@ html, body {
 /* Espacio blanco superior */
 .top-space {
   height: 30px;
-    background: white;
+  background: white;
 }
 
 /* Navbar */
@@ -73,6 +73,12 @@ html, body {
   color: white;
 }
 
+.secondary {
+  margin-top: 12px;
+  background: #e5e7eb;
+  color: #111827;
+}
+
 /* ========================= */
 /* ====== OVERLAY BANK ===== */
 /* ========================= */
@@ -88,6 +94,8 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
   z-index: 9999;
   animation: fadeIn 0.25s ease;
 }
@@ -97,13 +105,11 @@ html, body {
   to { opacity: 1; }
 }
 
-/* Modal bancario */
-
 .modal {
   background: white;
   padding: 28px;
   border-radius: 20px;
-  width: 85%;
+  width: 100%;
   max-width: 360px;
   text-align: center;
   box-shadow: 0 20px 40px rgba(0,0,0,0.25);
@@ -170,6 +176,11 @@ html, body {
   <button class="button primary" onclick="confirmPayment()">
     Confirmar con Face ID
   </button>
+
+  <button class="button secondary" onclick="testAndroid()">
+    Test Android
+  </button>
+
 </div>
 
 <script>
@@ -177,9 +188,11 @@ html, body {
 let currentAmount = 120.50;
 
 function postToNative(payload) {
-  window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify(payload)
-  );
+  if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.bridge) {
+    window.webkit.messageHandlers.bridge.postMessage(
+      JSON.stringify(payload)
+    );
+  }
 }
 
 function goBack() {
@@ -193,7 +206,17 @@ function confirmPayment() {
   });
 }
 
-/* ---- iOS RESPONSE ---- */
+/* ---- BOTÓN SOLO VISUAL ANDROID ---- */
+
+function testAndroid() {
+  showModal(
+    "success",
+    "Test Android",
+    "Este modal es solo visual. No ejecuta ninguna acción nativa."
+  );
+}
+
+/* ---- RESPUESTA iOS ---- */
 
 function biometricResult(result) {
 
@@ -226,22 +249,16 @@ function showModal(type, title, message) {
       </div>
       <h2>${title}</h2>
       <p>${message}</p>
-      <button onclick="confirmModal('${type}')">Aceptar</button>
+      <button onclick="closeModal()">Aceptar</button>
     </div>
   `;
 
   document.body.appendChild(overlay);
 }
 
-function confirmModal(type) {
-
-  document.getElementById("overlay").remove();
-
-  postToNative({
-    event: "paymentCompleted",
-    status: type === "success" ? "success" : "error",
-    amount: currentAmount
-  });
+function closeModal() {
+  const overlay = document.getElementById("overlay");
+  if (overlay) overlay.remove();
 }
 
 </script>
