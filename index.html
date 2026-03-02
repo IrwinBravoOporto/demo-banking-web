@@ -9,11 +9,25 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f4f6f9;
-  padding: 20px;
   margin: 0;
 }
 
-/* CARD */
+/* NAVBAR WEB */
+.navbar {
+  background: white;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.back-button {
+  font-size: 16px;
+  cursor: pointer;
+  color: #1a73e8;
+  font-weight: 600;
+}
+
 .card {
   background: white;
   padding: 28px;
@@ -27,12 +41,6 @@ body {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 20px;
-}
-
-.label {
-  font-size: 16px;
-  margin-bottom: 8px;
-  color: #555;
 }
 
 .amount {
@@ -57,14 +65,14 @@ body {
   color: white;
 }
 
-/* OVERLAY FULLSCREEN */
+/* OVERLAY */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0,0,0,0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,41 +90,23 @@ body {
   width: 85%;
   max-width: 400px;
   text-align: center;
-  animation: fadeIn 0.25s ease-in-out;
 }
 
 .icon {
   font-size: 48px;
   margin-bottom: 12px;
 }
-
-.success-icon {
-  color: #0a8f3e;
-}
-
-.error-icon {
-  color: #d93025;
-}
-
-.processing-icon {
-  color: #f9a825;
-}
-
-@keyframes fadeIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
 </style>
 </head>
 
 <body>
 
+<div class="navbar">
+  <div class="back-button" onclick="goBack()">← Volver</div>
+</div>
+
 <div class="card">
   <div class="title">Pago de Servicio</div>
-
-  <div class="label">Empresa</div>
-  <div style="font-size:18px; margin-bottom:20px;">Luz del Sur</div>
-
   <div class="amount">S/ 120.50</div>
 
   <button class="button primary" onclick="confirmPayment()">
@@ -124,7 +114,6 @@ body {
   </button>
 </div>
 
-<!-- OVERLAY MODAL -->
 <div id="overlay" class="overlay hidden">
   <div class="modal">
     <div id="modal-icon" class="icon"></div>
@@ -138,77 +127,46 @@ body {
 
 <script>
 
+function goBack() {
+  window.webkit.messageHandlers.bridge.postMessage(
+    JSON.stringify({ event: "goBack" })
+  );
+}
+
 function confirmPayment() {
   window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify({
-      event: "requestBiometric"
-    })
+    JSON.stringify({ event: "requestBiometric" })
   );
 }
 
 function biometricResult(result) {
 
   if (result === "Autenticado") {
-
-    showProcessing();
-
-    setTimeout(() => {
-      showSuccess();
-    }, 1500);
-
+    showSuccess();
   } else {
     showError();
   }
 }
 
-function showProcessing() {
-  document.getElementById("overlay").classList.remove("hidden");
-  document.getElementById("modal-icon").innerHTML = "⏳";
-  document.getElementById("modal-icon").className = "icon processing-icon";
-  document.getElementById("modal-title").innerText = "Procesando";
-  document.getElementById("modal-message").innerText = "Estamos procesando su pago...";
-}
-
 function showSuccess() {
+  document.getElementById("overlay").classList.remove("hidden");
   document.getElementById("modal-icon").innerHTML = "✔️";
-  document.getElementById("modal-icon").className = "icon success-icon";
   document.getElementById("modal-title").innerText = "Pago Exitoso";
   document.getElementById("modal-message").innerText =
-    "La validación fue exitosa. Su servicio fue pagado correctamente.";
-
-  window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify({
-      event: "paymentCompleted",
-      status: "success",
-      amount: 120.50
-    })
-  );
+    "La validación fue exitosa.";
 }
 
 function showError() {
   document.getElementById("overlay").classList.remove("hidden");
   document.getElementById("modal-icon").innerHTML = "❌";
-  document.getElementById("modal-icon").className = "icon error-icon";
   document.getElementById("modal-title").innerText = "Pago Rechazado";
   document.getElementById("modal-message").innerText =
-    "La validación falló. Intente nuevamente.";
-
-  window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify({
-      event: "paymentCompleted",
-      status: "error",
-      amount: 120.50
-    })
-  );
+    "La validación falló.";
 }
 
 function closeModal() {
-  document.getElementById("overlay").classList.add("hidden");
-
   window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify({
-      event: "modalClosed"
-    })
+    JSON.stringify({ event: "closeScreen" })
   );
 }
 
