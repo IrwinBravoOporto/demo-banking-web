@@ -13,6 +13,7 @@ body {
   margin: 0;
 }
 
+/* CARD */
 .card {
   background: white;
   padding: 28px;
@@ -56,28 +57,54 @@ body {
   color: white;
 }
 
-.status {
-  margin-top: 30px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
+/* OVERLAY FULLSCREEN */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
 
-.success {
+.hidden {
+  display: none;
+}
+
+.modal {
+  background: white;
+  padding: 28px;
+  border-radius: 20px;
+  width: 85%;
+  max-width: 400px;
+  text-align: center;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.success-icon {
   color: #0a8f3e;
 }
 
-.error {
+.error-icon {
   color: #d93025;
 }
 
-.processing {
+.processing-icon {
   color: #f9a825;
 }
 
-.check {
-  font-size: 48px;
-  margin-bottom: 10px;
+@keyframes fadeIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 </style>
 </head>
@@ -95,8 +122,18 @@ body {
   <button class="button primary" onclick="confirmPayment()">
     Confirmar con Face ID
   </button>
+</div>
 
-  <div id="status" class="status"></div>
+<!-- OVERLAY MODAL -->
+<div id="overlay" class="overlay hidden">
+  <div class="modal">
+    <div id="modal-icon" class="icon"></div>
+    <h2 id="modal-title"></h2>
+    <p id="modal-message"></p>
+    <button class="button primary" onclick="closeModal()">
+      Aceptar
+    </button>
+  </div>
 </div>
 
 <script>
@@ -111,48 +148,68 @@ function confirmPayment() {
 
 function biometricResult(result) {
 
-  const status = document.getElementById("status");
-
   if (result === "Autenticado") {
 
-    // Paso 1: Mostrar procesamiento
-    status.innerHTML = "<div class='processing'>Procesando pago...</div>";
+    showProcessing();
 
-    // Paso 2: Simular backend (1.5s)
     setTimeout(() => {
-
-      status.innerHTML = `
-        <div class='success'>
-          <div class='check'>✔️</div>
-          Pago Exitoso
-        </div>
-      `;
-
-      // Paso 3: Notificar a Mobile después de mostrar éxito
-      setTimeout(() => {
-        window.webkit.messageHandlers.bridge.postMessage(
-          JSON.stringify({
-            event: "paymentCompleted",
-            status: "success",
-            amount: 120.50
-          })
-        );
-      }, 800);
-
+      showSuccess();
     }, 1500);
 
   } else {
-
-    status.innerHTML = "<div class='error'>Pago Rechazado</div>";
-
-    window.webkit.messageHandlers.bridge.postMessage(
-      JSON.stringify({
-        event: "paymentCompleted",
-        status: "error",
-        amount: 120.50
-      })
-    );
+    showError();
   }
+}
+
+function showProcessing() {
+  document.getElementById("overlay").classList.remove("hidden");
+  document.getElementById("modal-icon").innerHTML = "⏳";
+  document.getElementById("modal-icon").className = "icon processing-icon";
+  document.getElementById("modal-title").innerText = "Procesando";
+  document.getElementById("modal-message").innerText = "Estamos procesando su pago...";
+}
+
+function showSuccess() {
+  document.getElementById("modal-icon").innerHTML = "✔️";
+  document.getElementById("modal-icon").className = "icon success-icon";
+  document.getElementById("modal-title").innerText = "Pago Exitoso";
+  document.getElementById("modal-message").innerText =
+    "La validación fue exitosa. Su servicio fue pagado correctamente.";
+
+  window.webkit.messageHandlers.bridge.postMessage(
+    JSON.stringify({
+      event: "paymentCompleted",
+      status: "success",
+      amount: 120.50
+    })
+  );
+}
+
+function showError() {
+  document.getElementById("overlay").classList.remove("hidden");
+  document.getElementById("modal-icon").innerHTML = "❌";
+  document.getElementById("modal-icon").className = "icon error-icon";
+  document.getElementById("modal-title").innerText = "Pago Rechazado";
+  document.getElementById("modal-message").innerText =
+    "La validación falló. Intente nuevamente.";
+
+  window.webkit.messageHandlers.bridge.postMessage(
+    JSON.stringify({
+      event: "paymentCompleted",
+      status: "error",
+      amount: 120.50
+    })
+  );
+}
+
+function closeModal() {
+  document.getElementById("overlay").classList.add("hidden");
+
+  window.webkit.messageHandlers.bridge.postMessage(
+    JSON.stringify({
+      event: "modalClosed"
+    })
+  );
 }
 
 </script>
