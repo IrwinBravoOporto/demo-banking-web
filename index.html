@@ -93,17 +93,51 @@ html, body {
 
 <script>
 
+let currentAmount = 120.50;
+
 function goBack() {
-  window.webkit.messageHandlers.bridge.postMessage({
-    event: "goBack"
-  });
+  window.webkit.messageHandlers.bridge.postMessage(
+    JSON.stringify({
+      event: "goBack"
+    })
+  );
 }
 
 function confirmPayment() {
-  window.webkit.messageHandlers.bridge.postMessage({
-    event: "requestBiometric",
-    amount: 120.50
-  });
+  window.webkit.messageHandlers.bridge.postMessage(
+    JSON.stringify({
+      event: "requestBiometric",
+      amount: currentAmount
+    })
+  );
+}
+
+function biometricResult(result) {
+
+  if (result === "Autenticado") {
+
+    alert("Pago exitoso ✅");
+
+    window.webkit.messageHandlers.bridge.postMessage(
+      JSON.stringify({
+        event: "paymentCompleted",
+        status: "success",
+        amount: currentAmount
+      })
+    );
+
+  } else {
+
+    alert("Autenticación fallida ❌");
+
+    window.webkit.messageHandlers.bridge.postMessage(
+      JSON.stringify({
+        event: "paymentCompleted",
+        status: "error",
+        amount: currentAmount
+      })
+    );
+  }
 }
 
 </script>
