@@ -17,7 +17,10 @@ html, body {
 /* NAVBAR WEB */
 .navbar {
   background: white;
-  padding: 16px;
+  padding-top: calc(env(safe-area-inset-top) + 16px);
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 16px;
   display: flex;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -30,13 +33,14 @@ html, body {
   font-weight: 600;
 }
 
+/* CARD */
 .card {
   background: white;
   padding: 28px;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.08);
   max-width: 420px;
-  margin: 40px auto;
+  margin: 30px auto;
 }
 
 .title {
@@ -65,6 +69,20 @@ html, body {
 .primary {
   background: #1a73e8;
   color: white;
+}
+
+/* LISTADO */
+.list-container {
+  max-width: 420px;
+  margin: 20px auto;
+}
+
+.list-item {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.06);
 }
 
 /* OVERLAY */
@@ -116,6 +134,10 @@ html, body {
   </button>
 </div>
 
+<!-- LISTADO QUE VIENE DESDE iOS -->
+<div id="list-container" class="list-container"></div>
+
+<!-- MODAL -->
 <div id="overlay" class="overlay hidden">
   <div class="modal">
     <div id="modal-icon" class="icon"></div>
@@ -129,26 +151,31 @@ html, body {
 
 <script>
 
+/* ---------- NAVIGATION ---------- */
+
 function goBack() {
-  window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify({ event: "goBack" })
-  );
+  window.webkit.messageHandlers.bridge.postMessage({
+    event: "goBack"
+  });
 }
 
+/* ---------- BIOMETRÍA ---------- */
+
 function confirmPayment() {
-  window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify({ event: "requestBiometric" })
-  );
+  window.webkit.messageHandlers.bridge.postMessage({
+    event: "requestBiometric"
+  });
 }
 
 function biometricResult(result) {
-
   if (result === "Autenticado") {
     showSuccess();
   } else {
     showError();
   }
 }
+
+/* ---------- MODALES ---------- */
 
 function showSuccess() {
   document.getElementById("overlay").classList.remove("hidden");
@@ -167,10 +194,37 @@ function showError() {
 }
 
 function closeModal() {
-  window.webkit.messageHandlers.bridge.postMessage(
-    JSON.stringify({ event: "closeScreen" })
-  );
+  window.webkit.messageHandlers.bridge.postMessage({
+    event: "closeScreen"
+  });
 }
+
+/* ---------- LISTADO ---------- */
+
+function requestList() {
+  window.webkit.messageHandlers.bridge.postMessage({
+    event: "loadList"
+  });
+}
+
+function renderList(data) {
+  const container = document.getElementById("list-container");
+  container.innerHTML = "";
+
+  data.forEach(item => {
+    container.innerHTML += `
+      <div class="list-item">
+        <strong>${item.name}</strong><br/>
+        S/ ${item.amount}
+      </div>
+    `;
+  });
+}
+
+/* Solicitar listado cuando carga */
+window.onload = function() {
+  requestList();
+};
 
 </script>
 
