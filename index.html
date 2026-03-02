@@ -1,15 +1,80 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bank Demo</title>
+<meta charset="UTF-8" />
+<title>Pago Servicio</title>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont;
+  background: #f4f6f9;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.amount {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1a73e8;
+  margin-bottom: 20px;
+}
+
+.button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.primary {
+  background: #1a73e8;
+  color: white;
+}
+
+.success {
+  color: green;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+  margin-top: 20px;
+}
+</style>
 </head>
+
 <body>
-  <h1>Demo Pago Bancario</h1>
-  <button onclick="requestBiometric()">Confirmar con Biometría</button>
-  <p id="result"></p>
+
+<div class="card">
+  <div class="title">Pago de Servicio</div>
+  <div>Empresa: Luz del Sur</div>
+  <div class="amount">S/ 120.50</div>
+
+  <button class="button primary" onclick="confirmPayment()">
+    Confirmar con Face ID
+  </button>
+
+  <div id="status"></div>
+</div>
 
 <script>
-function requestBiometric() {
+
+function confirmPayment() {
   window.webkit.messageHandlers.bridge.postMessage(
     JSON.stringify({
       event: "requestBiometric"
@@ -18,8 +83,37 @@ function requestBiometric() {
 }
 
 function biometricResult(result) {
-  document.getElementById("result").innerText = result;
+
+  const status = document.getElementById("status");
+
+  if (result === "Autenticado") {
+
+    status.innerHTML = "<div class='success'>Pago Exitoso</div>";
+
+    // Notificamos a Mobile
+    window.webkit.messageHandlers.bridge.postMessage(
+      JSON.stringify({
+        event: "paymentCompleted",
+        status: "success",
+        amount: 120.50
+      })
+    );
+
+  } else {
+
+    status.innerHTML = "<div class='error'>Pago Rechazado</div>";
+
+    window.webkit.messageHandlers.bridge.postMessage(
+      JSON.stringify({
+        event: "paymentCompleted",
+        status: "error",
+        amount: 120.50
+      })
+    );
+  }
 }
+
 </script>
+
 </body>
 </html>
