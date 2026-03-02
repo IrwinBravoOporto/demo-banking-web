@@ -7,7 +7,75 @@
 
 <style>
 
-/* -------- OVERLAY -------- */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f6f9;
+}
+
+/* Espacio blanco superior */
+.top-space {
+  height: 100px;
+  background: white;
+}
+
+/* Navbar */
+.navbar {
+  background: white;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.back-button {
+  font-size: 16px;
+  cursor: pointer;
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+/* Card */
+.card {
+  background: white;
+  padding: 28px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  max-width: 420px;
+  margin: 30px auto;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.amount {
+  font-size: 36px;
+  font-weight: 800;
+  color: #1a73e8;
+  margin-bottom: 30px;
+}
+
+.button {
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  background: #1a73e8;
+  color: white;
+}
+
+/* ========================= */
+/* ====== OVERLAY BANK ===== */
+/* ========================= */
 
 #overlay {
   position: fixed;
@@ -15,34 +83,62 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  animation: fadeIn 0.25s ease;
 }
 
-/* -------- MODAL -------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal bancario */
 
 .modal {
   background: white;
   padding: 28px;
-  border-radius: 16px;
+  border-radius: 20px;
   width: 85%;
-  max-width: 340px;
+  max-width: 360px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  animation: scaleIn 0.25s ease;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-icon {
+  font-size: 40px;
+  margin-bottom: 16px;
+}
+
+.modal.success .modal-icon {
+  color: #16a34a;
+}
+
+.modal.error .modal-icon {
+  color: #dc2626;
 }
 
 .modal h2 {
   margin-bottom: 12px;
   font-size: 20px;
+  font-weight: 700;
 }
 
 .modal p {
   margin-bottom: 24px;
-  font-size: 16px;
+  font-size: 15px;
   color: #555;
+  line-height: 1.4;
 }
 
 .modal button {
@@ -80,15 +176,11 @@
 
 let currentAmount = 120.50;
 
-/* --------- ENVÍO AL NATIVO --------- */
-
 function postToNative(payload) {
   window.webkit.messageHandlers.bridge.postMessage(
     JSON.stringify(payload)
   );
 }
-
-/* --------- BOTONES --------- */
 
 function goBack() {
   postToNative({ event: "goBack" });
@@ -101,50 +193,53 @@ function confirmPayment() {
   });
 }
 
-/* --------- RESPUESTA BIOMÉTRICA DESDE iOS --------- */
+/* ---- iOS RESPONSE ---- */
 
 function biometricResult(result) {
 
   if (result === "Autenticado") {
     showModal(
+      "success",
       "Pago exitoso",
-      "Tu pago fue procesado correctamente.",
-      "success"
+      "Tu pago fue procesado correctamente."
     );
   } else {
     showModal(
+      "error",
       "Autenticación fallida",
-      "No se pudo validar tu identidad.",
-      "error"
+      "No se pudo validar tu identidad."
     );
   }
 }
 
-/* --------- MODAL UI --------- */
+/* ---- MODAL ---- */
 
-function showModal(title, message, status) {
+function showModal(type, title, message) {
 
   const overlay = document.createElement("div");
   overlay.id = "overlay";
 
   overlay.innerHTML = `
-    <div class="modal">
+    <div class="modal ${type}">
+      <div class="modal-icon">
+        ${type === "success" ? "✔︎" : "✖︎"}
+      </div>
       <h2>${title}</h2>
       <p>${message}</p>
-      <button onclick="confirmModal('${status}')">Aceptar</button>
+      <button onclick="confirmModal('${type}')">Aceptar</button>
     </div>
   `;
 
   document.body.appendChild(overlay);
 }
 
-function confirmModal(status) {
+function confirmModal(type) {
 
   document.getElementById("overlay").remove();
 
   postToNative({
     event: "paymentCompleted",
-    status: status,
+    status: type === "success" ? "success" : "error",
     amount: currentAmount
   });
 }
